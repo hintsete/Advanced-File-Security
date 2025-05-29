@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>File Decryption</h1>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="file">Select encrypted file:</label>
+        <input type="file" class="form-control-file" id="file" name="file" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="cipher_type">Cipher Type:</label>
+        <select class="form-control" id="cipher_type" name="cipher_type" required>
+            <option value="aes-128-cbc">AES-128-CBC</option>
+            <option value="aes-128-cfb">AES-128-CFB</option>
+            <option value="bf-cbc">Blowfish-CBC</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="key">Encryption Key:</label>
+        <input type="text" class="form-control" id="key" name="key" required placeholder="32 hex characters (16 bytes)">
+    </div>
+    
+    <div class="form-group">
+        <label for="iv">Initialization Vector (if used):</label>
+        <input type="text" class="form-control" id="iv" name="iv" placeholder="32 hex characters (16 bytes)">
+    </div>
+    
+    <div class="form-group">
+        <label for="hmac">HMAC (optional, for verification):</label>
+        <input type="text" class="form-control" id="hmac" name="hmac" placeholder="HMAC-SHA256 value">
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Decrypt File</button>
+</form>
+
+<a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Back to Home</a>
+{% endblock %}

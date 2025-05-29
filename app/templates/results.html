@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Encryption Results</h1>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h3 class="card-title">Original File</h3>
+        <p><a href="{{ url_for('uploaded_file', filename=original_file) }}" class="btn btn-outline-primary">Download {{ original_file }}</a></p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h3 class="card-title">Encrypted File</h3>
+        <p><a href="{{ url_for('uploaded_file', filename=encrypted_file) }}" class="btn btn-outline-success">Download {{ encrypted_file }}</a></p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Encryption Details</h3>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <tr>
+                <th>Cipher Type</th>
+                <td>{{ cipher_type }}</td>
+            </tr>
+            <tr>
+                <th>Key</th>
+                <td><code>{{ key }}</code></td>
+            </tr>
+            {% if iv %}
+            <tr>
+                <th>Initialization Vector (IV)</th>
+                <td><code>{{ iv }}</code></td>
+            </tr>
+            {% endif %}
+            <tr>
+                <th>HMAC (SHA256)</th>
+                <td><code>{{ hmac }}</code></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('index') }}" class="btn btn-primary">Encrypt Another File</a>
+    <a href="{{ url_for('decrypt') }}" class="btn btn-secondary">Decrypt a File</a>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>ECB Pattern Leak Results</h1>
+
+<div class="alert alert-danger">
+    <strong>Security Warning:</strong> The encrypted image still shows patterns from the original because ECB mode was used.
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>Original Image</h3>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ url_for('uploaded_file', filename=original_image) }}" class="img-fluid" style="max-height: 400px;">
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>ECB Encrypted Image</h3>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ url_for('uploaded_file', filename=encrypted_image) }}" class="img-fluid" style="max-height: 400px;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h4>Technical Details</h4>
+        <p><strong>Key used:</strong> <code>{{ key }}</code></p>
+        <p>The encrypted image was created using AES-128-ECB mode, which doesn't hide patterns in the original image.</p>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('ecb_demo') }}" class="btn btn-primary">Try Another Image</a>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Home</a>
+</div>
+{% endblock %}

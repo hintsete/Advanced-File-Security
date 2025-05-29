@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>ECB Pattern Leak Demonstration</h1>
+<div class="alert alert-warning">
+    <strong>Warning:</strong> This demonstrates why ECB (Electronic Codebook) mode is insecure for most uses.
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="image">Select an image file (PNG/JPG):</label>
+        <input type="file" class="form-control-file" id="image" name="image" accept="image/*" required>
+        <small class="form-text text-muted">Choose an image with large areas of uniform color to clearly see the pattern</small>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Encrypt Image in ECB Mode</button>
+</form>
+
+<div class="mt-4">
+    <h4>Why ECB is Insecure:</h4>
+    <ul>
+        <li>Identical plaintext blocks produce identical ciphertext blocks</li>
+        <li>Patterns in the original data remain visible in encrypted form</li>
+        <li>No diffusion - small changes in plaintext don't affect entire ciphertext</li>
+    </ul>
+</div>
+
+<a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Back to Home</a>
+{% endblock %}

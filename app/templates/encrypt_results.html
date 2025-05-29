@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="crypto-card result-card">
+    <h2><i class="fas fa-check-circle success-icon"></i> Encryption Successful!</h2>
+    
+    <div class="result-details">
+        <div class="detail-item">
+            <span class="detail-label">Original File:</span>
+            <span class="detail-value">{{ original_filename }}</span>
+        </div>
+        
+        <div class="detail-item">
+            <span class="detail-label">Encryption Type:</span>
+            <span class="detail-value">{{ cipher }}</span>
+        </div>
+        
+        <div class="detail-item important">
+            <span class="detail-label">Your Encryption Key:</span>
+            <span class="detail-value copyable" id="encryption-key">{{ key }}</span>
+            <button class="copy-btn" onclick="copyToClipboard('encryption-key')">
+                <i class="fas fa-copy"></i> Copy
+            </button>
+        </div>
+        
+        {% if iv %}
+        <div class="detail-item important">
+            <span class="detail-label">Initialization Vector (IV):</span>
+            <span class="detail-value copyable" id="iv-value">{{ iv }}</span>
+            <button class="copy-btn" onclick="copyToClipboard('iv-value')">
+                <i class="fas fa-copy"></i> Copy
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="download-section">
+        <h3>Your encrypted file is ready:</h3>
+        <a href="{{ url_for('main.download_file', filename=encrypted_filename) }}" 
+           class="download-btn">
+            <i class="fas fa-file-download"></i> Download Encrypted File
+        </a>
+    </div>
+    
+    <div class="security-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>Important: Save your encryption key and IV in a secure place. 
+           Without them, you cannot decrypt your file later!</p>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(elementId) {
+    const element = document.getElementById(elementId);
+    navigator.clipboard.writeText(element.textContent.trim());
+    
+    // Show copied notification
+    const originalText = element.textContent;
+    element.textContent = "Copied!";
+    setTimeout(() => {
+        element.textContent = originalText;
+    }, 2000);
+}
+</script>
+{% endblock %}

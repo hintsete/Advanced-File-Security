@@ -1,0 +1,64 @@
+/* Results Page Styling */
+.result-card {
+    max-width: 800px;
+    margin: 2rem auto;
+}
+
+.success-icon {
+    color: #28a745;
+}
+
+.detail-item {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: rgba(0,0,0,0.1);
+    border-radius: 4px;
+}
+
+.detail-item.important {
+    background: rgba(40, 167, 69, 0.1);
+    border-left: 4px solid #28a745;
+}
+
+.detail-label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #4a90e2;
+}
+
+.copyable {
+    font-family: monospace;
+    background: rgba(0,0,0,0.2);
+    padding: 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.copy-btn {
+    background: transparent;
+    border: 1px solid #4a90e2;
+    color: #4a90e2;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.download-btn {
+    display: inline-block;
+    background: #28a745;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    margin: 1rem 0;
+    font-size: 1.2rem;
+}
+
+.security-warning {
+    background: rgba(220, 53, 69, 0.1);
+    border-left: 4px solid #dc3545;
+    padding: 1rem;
+    margin-top: 2rem;
+}

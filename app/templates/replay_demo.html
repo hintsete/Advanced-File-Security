@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Replay Attack Simulation</h1>
+<div class="alert alert-warning">
+    This demonstrates why you should never reuse the same IV with the same key.
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="file">Select a file to encrypt twice with same IV:</label>
+        <input type="file" class="form-control-file" id="file" name="file" required>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Run Simulation</button>
+</form>
+
+<div class="mt-4">
+    <h4>About Replay Attacks:</h4>
+    <ul>
+        <li>Reusing an IV with the same key can leak information</li>
+        <li>Identical plaintexts will produce identical ciphertexts</li>
+        <li>Attackers can recognize patterns in encrypted data</li>
+        <li>Proper implementations should use unique IVs for each encryption</li>
+    </ul>
+</div>
+
+<a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Home</a>
+{% endblock %}

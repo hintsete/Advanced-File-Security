@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Brute Force Results</h1>
+
+{% if success %}
+<div class="alert alert-success">
+    <h4>Key Found!</h4>
+    <p>The key <code>{{ found_key }}</code> successfully decrypted the message after {{ total_attempts }} attempts.</p>
+    <p>Decrypted text: <strong>{{ decrypted_text }}</strong></p>
+</div>
+{% else %}
+<div class="alert alert-danger">
+    <h4>Key Not Found</h4>
+    <p>After {{ total_attempts }} attempts, we couldn't find the key (but with this small keyspace, we should have found it).</p>
+</div>
+{% endif %}
+
+<div class="card">
+    <div class="card-body">
+        <h4>Original Text</h4>
+        <p class="lead">{{ original_text }}</p>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h4>What This Demonstrates</h4>
+    </div>
+    <div class="card-body">
+        <p>With <strong>real</strong> encryption:</p>
+        <ul>
+            <li>AES-128 has 340,282,366,920,938,463,463,374,607,431,768,211,456 possible keys</li>
+            <li>Even with supercomputers, brute forcing a strong key is impractical</li>
+            <li>This is why key length and randomness matter!</li>
+        </ul>
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('bruteforce_demo') }}" class="btn btn-primary">Try Again</a>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Home</a>
+</div>
+{% endblock %}

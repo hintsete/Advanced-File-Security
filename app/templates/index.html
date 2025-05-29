@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>File Encryption Tool</h1>
+<form method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="file">Select file to encrypt:</label>
+        <input type="file" class="form-control-file" id="file" name="file" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="cipher_type">Cipher Type:</label>
+        <select class="form-control" id="cipher_type" name="cipher_type" required>
+            <option value="aes-128-cbc">AES-128-CBC</option>
+            <option value="aes-128-cfb">AES-128-CFB</option>
+            <option value="bf-cbc">Blowfish-CBC</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="key">Encryption Key (leave blank to generate random):</label>
+        <input type="text" class="form-control" id="key" name="key" placeholder="32 hex characters (16 bytes)">
+    </div>
+    
+    <div class="form-group">
+        <label for="iv">Initialization Vector (leave blank to generate random):</label>
+        <input type="text" class="form-control" id="iv" name="iv" placeholder="32 hex characters (16 bytes)">
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Encrypt File</button>
+</form>
+
+<div class="encryption-demo">
+    <h3>Try These Demonstrations:</h3>
+    <div class="list-group">
+        <a href="{{ url_for('ecb_demo') }}" class="list-group-item list-group-item-action">
+            <strong>ECB Pattern Leak</strong> - Show why ECB mode is insecure
+        </a>
+        <a href="{{ url_for('replay_demo') }}" class="list-group-item list-group-item-action">
+            <strong>Replay Attack</strong> - Demonstrate IV reuse vulnerability
+        </a>
+        <a href="{{ url_for('bruteforce_demo') }}" class="list-group-item list-group-item-action">
+            <strong>Brute Force</strong> - Simulate weak key attack
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Encrypt & Decrypt File</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #80deea);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: #00796b;
+    }
+
+    input[type="file"] {
+      margin: 1rem 0;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background-color: #00796b;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #004d40;
+    }
+
+    .message {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #388e3c;
+      background-color: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Encrypt & Decrypt File</h1>
+    <input type="file" id="fileInput" />
+    <div class="buttons">
+      <button onclick="encryptFile()">Encrypt</button>
+      <button onclick="decryptFile()">Decrypt</button>
+    </div>
+    <div class="message" id="messageBox"></div>
+  </div>
+
+  <script>
+    function showMessage(text) {
+      const msgBox = document.getElementById("messageBox");
+      msgBox.textContent = text;
+      msgBox.style.display = "block";
+      setTimeout(() => {
+        msgBox.style.display = "none";
+      }, 3000);
+    }
+
+    function encryptFile() {
+      const fileInput = document.getElementById("fileInput");
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("Please choose a file to encrypt.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const content = event.target.result;
+        const encryptedContent = btoa(content); // simple base64 encoding
+        const blob = new Blob([encryptedContent], { type: "text/plain" });
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "encrypted_" + file.name;
+        link.click();
+
+        showMessage("File successfully encrypted!");
+      };
+      reader.readAsText(file);
+    }
+
+    function decryptFile() {
+      const fileInput = document.getElementById("fileInput");
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("Please choose a file to decrypt.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          const content = event.target.result;
+          const decryptedContent = atob(content); // simple base64 decoding
+          const blob = new Blob([decryptedContent], { type: "text/plain" });
+
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = "decrypted_" + file.name;
+          link.click();
+
+          showMessage("File successfully decrypted!");
+        } catch (error) {
+          alert("Error: Could not decrypt file. Make sure it was encrypted using this tool.");
+        }
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>

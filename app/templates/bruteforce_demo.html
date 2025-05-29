@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Brute Force Demonstration</h1>
+<div class="alert alert-info">
+    This shows how weak keys can be easily guessed (using a very small keyspace for demonstration).
+</div>
+
+<form method="post">
+    <div class="form-group">
+        <label for="text">Text to encrypt with weak key ("ab" in hex):</label>
+        <input type="text" class="form-control" id="text" name="text" value="Hello World" required>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Run Brute Force Simulation</button>
+</form>
+
+<div class="mt-4">
+    <h4>About Brute Force Attacks:</h4>
+    <ul>
+        <li>In this demo, we're using a 2-byte key (6162 in hex = "ab")</li>
+        <li>Real AES uses 16-byte (128-bit) or 32-byte (256-bit) keys</li>
+        <li>Brute forcing a 128-bit key would take billions of years with current technology</li>
+        <li>This demonstrates why key length matters</li>
+    </ul>
+</div>
+
+<a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Home</a>
+{% endblock %}
