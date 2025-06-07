@@ -13,7 +13,7 @@
 <div class="card mb-4">
     <div class="card-body">
         <h3 class="card-title">Encrypted File</h3>
-        <p><a href="{{ url_for('uploaded_file', filename=encrypted_file) }}" class="btn btn-outline-success">Download {{ encrypted_file }}</a></p>
+        <a href="{{ url_for('uploaded_file', filename=encrypted_filename) }}"></a>>
     </div>
 </div>
 
@@ -25,7 +25,7 @@
         <table class="table">
             <tr>
                 <th>Cipher Type</th>
-                <td>{{ cipher_type }}</td>
+                <td>{{ cipher }}</td>
             </tr>
             <tr>
                 <th>Key</th>
