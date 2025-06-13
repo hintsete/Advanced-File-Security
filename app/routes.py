@@ -1,5 +1,6 @@
 
 import os
+import subprocess
 from app import app  # your existing import
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # app folder path
@@ -112,30 +113,65 @@ def ecb_demo():
         if image and allowed_file(image.filename):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             original_filename = secure_filename(image.filename)
-            input_path = os.path.join(app.config['UPLOAD_FOLDER'], f"ecb_original_{timestamp}_{original_filename}")
-            image.save(input_path)
+            original_path = os.path.join(app.config['UPLOAD_FOLDER'], f"original_{timestamp}_{original_filename}")
+            image.save(original_path)
 
-            # ECB encrypted output
-            ecb_filename = f"ecb_encrypted_{timestamp}_{original_filename}.bin"
-            ecb_path = os.path.join(app.config['UPLOAD_FOLDER'], ecb_filename)
+            # Create padded copy of the image (multiple of 16 bytes)
+            padded_path = os.path.join(app.config['UPLOAD_FOLDER'], f"padded_{timestamp}_{original_filename}")
+            with open(original_path, 'rb') as f_in:
+                data = f_in.read()
+            
+            # Calculate padding needed
+            block_size = 16
+            pad_len = block_size - (len(data) % block_size)
+            padded_data = data + bytes([pad_len] * pad_len)
+            
+            with open(padded_path, 'wb') as f_out:
+                f_out.write(padded_data)
 
-            # CBC encrypted output for comparison
-            cbc_filename = f"cbc_encrypted_{timestamp}_{original_filename}.bin"
-            cbc_path = os.path.join(app.config['UPLOAD_FOLDER'], cbc_filename)
+            # Generate visualization paths (using .jpg extension for viewability)
+            ecb_vis_path = os.path.join(app.config['UPLOAD_FOLDER'], f"ecb_vis_{timestamp}_{original_filename}")
+            cbc_vis_path = os.path.join(app.config['UPLOAD_FOLDER'], f"cbc_vis_{timestamp}_{original_filename}")
 
-            # Run ECB encryption and pattern check (returns key used)
-            key = check_ecb_pattern_leak(input_path, ecb_path)
+            # Generate random key/IV
+            key = generate_random_hex(32)  # 256-bit key
+            iv = generate_random_hex(32)
 
-            # CBC encryption for comparison with random IV
-            iv = generate_random_hex(16)
-            encrypt_file(input_path, cbc_path, 'aes-128-cbc', key, iv)
+            try:
+                # Create ECB visualization
+                subprocess.run([
+                    'openssl', 'enc', '-aes-256-ecb',
+                    '-in', padded_path,
+                    '-out', ecb_vis_path,
+                    '-K', key,
+                    '-nopad'
+                ], check=True)
 
-            return render_template('ecb_results.html',
-                                   original_image=original_filename,
-                                   ecb_image=ecb_filename,
-                                   cbc_image=cbc_filename,
-                                   key=key,
-                                   iv=iv)
+                # Create CBC visualization
+                subprocess.run([
+                    'openssl', 'enc', '-aes-256-cbc',
+                    '-in', padded_path,
+                    '-out', cbc_vis_path,
+                    '-K', key,
+                    '-iv', iv,
+                    '-nopad'
+                ], check=True)
+
+                return render_template('ecb_results.html',
+                                    original_image=f"original_{timestamp}_{original_filename}",
+                                    ecb_image=f"ecb_vis_{timestamp}_{original_filename}",
+                                    cbc_image=f"cbc_vis_{timestamp}_{original_filename}",
+                                    key=key,
+                                    iv=iv)
+
+            except subprocess.CalledProcessError as e:
+                flash(f'Encryption failed: {e.stderr}', 'error')
+                return redirect(request.url)
+            finally:
+                # Clean up padded file
+                if os.path.exists(padded_path):
+                    os.remove(padded_path)
+
     return render_template('ecb_demo.html')
 
 
@@ -295,7 +331,6 @@ def cleanup():
         flash(f'Cleanup failed: {str(e)}', 'error')
 
     return redirect(url_for('index'))
-
 # from flask import render_template, request, redirect, url_for, flash, send_from_directory, send_file
 # from app import app
 # from app.crypto_utils import (

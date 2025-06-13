@@ -2,6 +2,10 @@ import os
 import subprocess
 import binascii
 import filecmp
+from PIL import Image
+# import numpy as np
+# from Crypto.Cipher import AES
+# from Crypto.Util.Padding import pad, unpad
 
 # Use full path to OpenSSL binary
 OPENSSL_PATH = r"C:\Program Files\Git\mingw64\bin\openssl.exe"
@@ -73,6 +77,59 @@ def check_ecb_pattern_leak(input_path, output_path):
     encrypt_file(input_path, output_path, 'aes-128-ecb', key)
     return key
 
+
+# def encrypt_image(image_path, mode, key, width, height, iv=None):
+#     """
+#     Encrypts an image and returns it as a PIL Image object
+#     Args:
+#         image_path: Path to the image file
+#         mode: 'ecb' or 'cbc'
+#         key: Encryption key (hex string)
+#         width: Original image width
+#         height: Original image height
+#         iv: Initialization vector (for CBC)
+#     Returns:
+#         PIL Image object of the encrypted image
+#     """
+#     # Read image data
+#     with open(image_path, 'rb') as f:
+#         image_data = f.read()
+    
+#     # Convert key from hex to bytes
+#     key_bytes = bytes.fromhex(key)
+    
+#     # Prepare cipher
+#     if mode.lower() == 'ecb':
+#         cipher = AES.new(key_bytes, AES.MODE_ECB)
+#     elif mode.lower() == 'cbc':
+#         iv_bytes = bytes.fromhex(iv) if iv else os.urandom(16)
+#         cipher = AES.new(key_bytes, AES.MODE_CBC, iv_bytes)
+#     else:
+#         raise ValueError("Unsupported mode")
+    
+#     # Encrypt the data
+#     padded_data = pad(image_data, AES.block_size)
+#     encrypted_data = cipher.encrypt(padded_data)
+    
+#     # Convert to image
+#     # We'll create a grayscale image where each byte is a pixel value
+#     # Need to ensure we have enough pixels for all the encrypted data
+#     total_pixels = width * height
+#     bytes_needed = len(encrypted_data)
+    
+#     # If encrypted data is larger than original pixels, we'll need to adjust dimensions
+#     if bytes_needed > total_pixels:
+#         # Calculate new height that can accommodate all bytes
+#         new_height = (bytes_needed + width - 1) // width
+#         encrypted_array = np.frombuffer(encrypted_data[:width*new_height], dtype=np.uint8)
+#         encrypted_array = encrypted_array.reshape((new_height, width))
+#     else:
+#         # Pad with zeros if needed
+#         encrypted_array = np.zeros(total_pixels, dtype=np.uint8)
+#         encrypted_array[:bytes_needed] = np.frombuffer(encrypted_data, dtype=np.uint8)
+#         encrypted_array = encrypted_array.reshape((height, width))
+    
+#     return Image.fromarray(encrypted_array, mode='L')
 
 def simulate_replay_attack(input_path, output_path1, output_path2, cipher_type='aes-128-cbc'):
     key = generate_random_hex(16)
