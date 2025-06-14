@@ -1,6 +1,8 @@
 
 import os
 import subprocess
+# from tkinter import Image
+from PIL import Image 
 from app import app  # your existing import
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))  # app folder path
@@ -114,63 +116,88 @@ def ecb_demo():
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             original_filename = secure_filename(image.filename)
             original_path = os.path.join(app.config['UPLOAD_FOLDER'], f"original_{timestamp}_{original_filename}")
+            
+            # Save the image first
             image.save(original_path)
 
-            # Create padded copy of the image (multiple of 16 bytes)
-            padded_path = os.path.join(app.config['UPLOAD_FOLDER'], f"padded_{timestamp}_{original_filename}")
-            with open(original_path, 'rb') as f_in:
-                data = f_in.read()
-            
-            # Calculate padding needed
-            block_size = 16
-            pad_len = block_size - (len(data) % block_size)
-            padded_data = data + bytes([pad_len] * pad_len)
-            
-            with open(padded_path, 'wb') as f_out:
-                f_out.write(padded_data)
-
-            # Generate visualization paths (using .jpg extension for viewability)
-            ecb_vis_path = os.path.join(app.config['UPLOAD_FOLDER'], f"ecb_vis_{timestamp}_{original_filename}")
-            cbc_vis_path = os.path.join(app.config['UPLOAD_FOLDER'], f"cbc_vis_{timestamp}_{original_filename}")
-
-            # Generate random key/IV
-            key = generate_random_hex(32)  # 256-bit key
-            iv = generate_random_hex(32)
-
             try:
-                # Create ECB visualization
-                subprocess.run([
-                    'openssl', 'enc', '-aes-256-ecb',
-                    '-in', padded_path,
-                    '-out', ecb_vis_path,
-                    '-K', key,
-                    '-nopad'
-                ], check=True)
+                # Open image and extract raw pixel data
+                with Image.open(original_path) as img:
+                    # Convert to RGB if needed
+                    if img.mode != 'RGB':
+                        img = img.convert('RGB')
+                    
+                    width, height = img.size
+                    pixels = img.tobytes()  # Get raw RGB pixel data
+                    
+                    # Pad to AES block size (16 bytes)
+                    block_size = 16
+                    pad_len = (block_size - (len(pixels) % block_size) % block_size)
+                    padded_pixels = pixels + bytes([pad_len] * pad_len)
+                    
+                    # Save just the pixel data (no headers/metadata)
+                    pixels_path = os.path.join(app.config['UPLOAD_FOLDER'], f"pixels_{timestamp}.bin")
+                    with open(pixels_path, 'wb') as f:
+                        f.write(padded_pixels)
 
-                # Create CBC visualization
-                subprocess.run([
-                    'openssl', 'enc', '-aes-256-cbc',
-                    '-in', padded_path,
-                    '-out', cbc_vis_path,
-                    '-K', key,
-                    '-iv', iv,
-                    '-nopad'
-                ], check=True)
+                    # Generate random key/IV
+                    key = os.urandom(32).hex()  # 256-bit key
+                    iv = os.urandom(16).hex()   # 128-bit IV
 
-                return render_template('ecb_results.html',
-                                    original_image=f"original_{timestamp}_{original_filename}",
-                                    ecb_image=f"ecb_vis_{timestamp}_{original_filename}",
-                                    cbc_image=f"cbc_vis_{timestamp}_{original_filename}",
-                                    key=key,
-                                    iv=iv)
+                    # Encrypt with ECB
+                    ecb_path = os.path.join(app.config['UPLOAD_FOLDER'], f"ecb_{timestamp}.bin")
+                    subprocess.run([
+                        'openssl', 'enc', '-aes-256-ecb',
+                        '-in', pixels_path,
+                        '-out', ecb_path,
+                        '-K', key,
+                        '-nopad'
+                    ], check=True)
 
-            except subprocess.CalledProcessError as e:
-                flash(f'Encryption failed: {e.stderr}', 'error')
+                    # Encrypt with CBC
+                    cbc_path = os.path.join(app.config['UPLOAD_FOLDER'], f"cbc_{timestamp}.bin")
+                    subprocess.run([
+                        'openssl', 'enc', '-aes-256-cbc',
+                        '-in', pixels_path,
+                        '-out', cbc_path,
+                        '-K', key,
+                        '-iv', iv,
+                        '-nopad'
+                    ], check=True)
+
+                    # Convert encrypted data back to images
+                    def create_encrypted_image(encrypted_path, output_path):
+                        with open(encrypted_path, 'rb') as f:
+                            encrypted_data = f.read()
+                        
+                        # Use only the original pixel data length
+                        img_data = encrypted_data[:len(pixels)]
+                        
+                        # Rebuild RGB image
+                        img = Image.frombytes('RGB', (width, height), img_data)
+                        img.save(output_path)
+
+                    ecb_img_path = os.path.join(app.config['UPLOAD_FOLDER'], f"ecb_{timestamp}.png")
+                    cbc_img_path = os.path.join(app.config['UPLOAD_FOLDER'], f"cbc_{timestamp}.png")
+                    
+                    create_encrypted_image(ecb_path, ecb_img_path)
+                    create_encrypted_image(cbc_path, cbc_img_path)
+
+                    return render_template('ecb_results.html',
+                                        original_image=f"original_{timestamp}_{original_filename}",
+                                        ecb_image=f"ecb_{timestamp}.png",
+                                        cbc_image=f"cbc_{timestamp}.png")
+
+            except Exception as e:
+                flash(f'Error: {str(e)}', 'error')
+                # Clean up files
+                for path in [original_path, pixels_path, ecb_path, cbc_path]:
+                    if path and os.path.exists(path):
+                        try:
+                            os.remove(path)
+                        except:
+                            pass
                 return redirect(request.url)
-            finally:
-                # Clean up padded file
-                if os.path.exists(padded_path):
-                    os.remove(padded_path)
 
     return render_template('ecb_demo.html')
 
@@ -191,21 +218,37 @@ def replay_demo():
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             original_filename = secure_filename(file.filename)
             input_path = os.path.join(app.config['UPLOAD_FOLDER'], f"replay_original_{timestamp}_{original_filename}")
-            file.save(input_path)
+            
+            try:
+                # Save the original file
+                file.save(input_path)
 
-            output1 = os.path.join(app.config['UPLOAD_FOLDER'], f"replay1_{timestamp}_{original_filename}.bin")
-            output2 = os.path.join(app.config['UPLOAD_FOLDER'], f"replay2_{timestamp}_{original_filename}.bin")
+                # Prepare output paths
+                output1 = os.path.join(app.config['UPLOAD_FOLDER'], f"replay1_{timestamp}_{original_filename}.bin")
+                output2 = os.path.join(app.config['UPLOAD_FOLDER'], f"replay2_{timestamp}_{original_filename}.bin")
 
-            # Simulate replay attack and get result dict
-            result = simulate_replay_attack(input_path, output1, output2)
+                # Simulate replay attack
+                result = simulate_replay_attack(input_path, output1, output2)
 
-            return render_template('replay_results.html',
-                                   original_file=original_filename,
-                                   encrypted_file1=os.path.basename(output1),
-                                   encrypted_file2=os.path.basename(output2),
-                                   key=result['key'],
-                                   iv=result['iv'],
-                                   files_identical=result['files_identical'])
+                return render_template('replay_results.html',
+                                    original_file=original_filename,
+                                    encrypted_file1=f"replay1_{timestamp}_{original_filename}.bin",
+                                    encrypted_file2=f"replay2_{timestamp}_{original_filename}.bin",
+                                    key=result['key'],
+                                    iv=result['iv'],
+                                    files_identical=result['files_identical'])
+            
+            except Exception as e:
+                flash(f'Error during encryption: {str(e)}', 'error')
+                # Clean up any created files
+                for path in [input_path]:
+                    if os.path.exists(path):
+                        try:
+                            os.remove(path)
+                        except:
+                            pass
+                return redirect(request.url)
+
     return render_template('replay_demo.html')
 
 

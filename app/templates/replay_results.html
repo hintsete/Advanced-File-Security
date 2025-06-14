@@ -1,52 +1,73 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Replay Attack Results</h1>
+<div class="container mt-4">
+    <h1>Replay Attack Results</h1>
 
-<div class="alert alert-{{ 'danger' if files_identical else 'success' }}">
-    The two encrypted files are <strong>{{ 'IDENTICAL' if files_identical else 'DIFFERENT' }}</strong> when using the same IV
-</div>
+    <div class="alert alert-{{ 'danger' if files_identical else 'success' }}">
+        The two encrypted files are <strong>{{ 'IDENTICAL' if files_identical else 'DIFFERENT' }}</strong> when using the same IV
+    </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h3>First Encryption</h3>
+    <div class="row mt-4">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h3>First Encryption</h3>
+                </div>
+                <div class="card-body text-center">
+                    <a href="{{ url_for('download', filename=encrypted_file1) }}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                </div>
             </div>
-            <div class="card-body">
-                <a href="{{ url_for('uploaded_file', filename=encrypted_file1) }}" class="btn btn-outline-primary">Download</a>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h3>Second Encryption</h3>
+                </div>
+                <div class="card-body text-center">
+                    <a href="{{ url_for('download', filename=encrypted_file2) }}" 
+                       class="btn btn-primary">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h3>Second Encryption</h3>
+
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h4>Encryption Details</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Key:</strong> <code>{{ key }}</code></p>
+            <p><strong>IV (reused):</strong> <code>{{ iv }}</code></p>
+            
+            {% if files_identical %}
+            <div class="alert alert-danger mt-3">
+                <h5><i class="fas fa-exclamation-triangle"></i> Security Issue Detected</h5>
+                <p>Because the same IV was reused with the same key, identical plaintexts produced identical ciphertexts.</p>
+                <p class="mb-0">This demonstrates why IVs should never be reused in CBC mode.</p>
             </div>
-            <div class="card-body">
-                <a href="{{ url_for('uploaded_file', filename=encrypted_file2) }}" class="btn btn-outline-primary">Download</a>
+            {% else %}
+            <div class="alert alert-success mt-3">
+                <h5><i class="fas fa-check-circle"></i> Secure Implementation</h5>
+                <p class="mb-0">Different ciphertexts were produced, indicating proper IV usage.</p>
             </div>
+            {% endif %}
         </div>
     </div>
-</div>
 
-<div class="card mt-4">
-    <div class="card-body">
-        <h4>Encryption Details</h4>
-        <p><strong>Key:</strong> <code>{{ key }}</code></p>
-        <p><strong>IV (reused):</strong> <code>{{ iv }}</code></p>
-        
-        {% if files_identical %}
-        <div class="alert alert-danger mt-3">
-            <strong>Security Issue:</strong> Because the same IV was reused with the same key, identical plaintexts produced identical ciphertexts.
-            This could allow attackers to recognize patterns in your encrypted data.
-        </div>
-        {% endif %}
+    <div class="mt-4 text-center">
+        <a href="{{ url_for('replay_demo') }}" class="btn btn-primary mr-3">
+            <i class="fas fa-redo"></i> Try Another File
+        </a>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+            <i class="fas fa-home"></i> Back to Home
+        </a>
     </div>
-</div>
-
-<div class="mt-4">
-    <a href="{{ url_for('replay_demo') }}" class="btn btn-primary">Try Another File</a>
-    <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Home</a>
 </div>
 {% endblock %}

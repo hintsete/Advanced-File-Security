@@ -131,15 +131,38 @@ def check_ecb_pattern_leak(input_path, output_path):
     
 #     return Image.fromarray(encrypted_array, mode='L')
 
+# def simulate_replay_attack(input_path, output_path1, output_path2, cipher_type='aes-128-cbc'):
+#     key = generate_random_hex(16)
+#     iv = generate_random_hex(16)
+#     encrypt_file(input_path, output_path1, cipher_type, key, iv)
+#     encrypt_file(input_path, output_path2, cipher_type, key, iv)
+#     return {
+#         'key': key,
+#         'iv': iv,
+#         'files_identical': filecmp.cmp(output_path1, output_path2, shallow=False)
+#     }
 def simulate_replay_attack(input_path, output_path1, output_path2, cipher_type='aes-128-cbc'):
+    """Simulates a replay attack by encrypting the same file twice with same key/IV"""
     key = generate_random_hex(16)
     iv = generate_random_hex(16)
-    encrypt_file(input_path, output_path1, cipher_type, key, iv)
-    encrypt_file(input_path, output_path2, cipher_type, key, iv)
+    
+    # First encryption
+    result1 = encrypt_file(input_path, output_path1, cipher_type, key, iv)
+    if result1.returncode != 0:
+        raise RuntimeError(f"First encryption failed: {result1.stderr}")
+    
+    # Second encryption with same parameters
+    result2 = encrypt_file(input_path, output_path2, cipher_type, key, iv)
+    if result2.returncode != 0:
+        raise RuntimeError(f"Second encryption failed: {result2.stderr}")
+    
+    # Compare the outputs
+    identical = filecmp.cmp(output_path1, output_path2, shallow=False)
+    
     return {
         'key': key,
         'iv': iv,
-        'files_identical': filecmp.cmp(output_path1, output_path2, shallow=False)
+        'files_identical': identical
     }
 
 
